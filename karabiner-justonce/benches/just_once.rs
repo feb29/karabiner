@@ -1,10 +1,10 @@
 #![feature(test)]
 
-extern crate just_once;
+extern crate karabiner_justonce;
 extern crate test;
 extern crate parking_lot;
 
-use just_once::JustOnce;
+use karabiner_justonce::JustOnce;
 use test::Bencher;
 
 #[bench]

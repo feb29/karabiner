@@ -1,2 +1,2 @@
-pub extern crate just_once;
-pub extern crate thunk;
+pub extern crate karabiner_justonce as justonce;
+pub extern crate karabiner_thunk as thunk;

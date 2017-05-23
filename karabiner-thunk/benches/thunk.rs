@@ -1,7 +1,7 @@
 #![feature(test)]
 
 #[macro_use]
-extern crate thunk;
+extern crate karabiner_thunk;
 
 extern crate test;
 

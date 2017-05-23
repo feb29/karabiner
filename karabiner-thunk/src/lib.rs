@@ -1,11 +1,11 @@
 #![feature(fnbox)]
 
-extern crate just_once;
+extern crate karabiner_justonce;
 
 use std::ops::{Deref, DerefMut};
 use std::boxed::FnBox;
 
-use just_once::JustOnce;
+use karabiner_justonce::JustOnce;
 
 #[macro_export]
 macro_rules! lazy {
