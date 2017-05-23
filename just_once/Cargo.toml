@@ -1,0 +1,9 @@
+[package]
+name    = "just_once"
+version = "0.1.0"
+authors = ["Kohei Watanabe <xbeef29@gmail.com>"]
+
+[dependencies]
+
+[dependencies.parking_lot]
+version = "0.4"
