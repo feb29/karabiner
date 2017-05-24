@@ -1,3 +1,5 @@
+#![feature(integer_atomics)]
+
 extern crate parking_lot;
 
 #[cfg(test)]
@@ -5,18 +7,18 @@ mod tests;
 
 use std::ops::{Drop, Deref, DerefMut};
 use std::cell::UnsafeCell;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicU8, Ordering};
 
 use parking_lot::{Mutex, MutexGuard};
 
-pub struct State(usize);
+pub struct State(u8);
 
 pub const INIT: State = State(0);
 pub const WAIT: State = State(1);
 pub const FREE: State = State(2);
 
 impl Deref for State {
-    type Target = usize;
+    type Target = u8;
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -25,7 +27,7 @@ impl Deref for State {
 
 #[derive(Default)]
 pub struct Lock<T> {
-    atom: AtomicUsize,
+    atom: AtomicU8,
     lock: Mutex<()>,
     cell: UnsafeCell<T>,
 }
@@ -37,7 +39,7 @@ impl<T> Lock<T>
 {
     pub fn new(inner: T) -> Lock<T> {
         Lock {
-            atom: AtomicUsize::new(*INIT),
+            atom: AtomicU8::new(*INIT),
             lock: Mutex::new(()),
             cell: UnsafeCell::new(inner),
         }
@@ -77,7 +79,6 @@ impl<T> Deref for Lock<T>
         }
         debug_assert_eq!(self.atom.load(Ordering::SeqCst), *FREE);
         unsafe { &*self.cell.get() }
-        //unsafe { ::std::mem::transmute(self.cell.get()) }
     }
 }
 impl<T> DerefMut for Lock<T>
@@ -87,7 +88,6 @@ impl<T> DerefMut for Lock<T>
         // `&mut self` means no LockGuard's exist.
         debug_assert_ne!(self.atom.load(Ordering::SeqCst), *WAIT);
         unsafe { &mut *self.cell.get() }
-        //unsafe { ::std::mem::transmute(self.cell.get()) }
     }
 }
 
@@ -118,7 +118,6 @@ impl<'a, T> Deref for LockGuard<'a, T>
     type Target = T;
     fn deref(&self) -> &T {
         unsafe { &*self.mutex.cell.get() }
-        //unsafe { ::std::mem::transmute(self.mutex.cell.get()) }
     }
 }
 impl<'a, T> DerefMut for LockGuard<'a, T>
@@ -126,7 +125,6 @@ impl<'a, T> DerefMut for LockGuard<'a, T>
 {
     fn deref_mut(&mut self) -> &mut T {
         unsafe { &mut *self.mutex.cell.get() }
-        // unsafe { ::std::mem::transmute(self.mutex.cell.get()) }
     }
 }
 impl<'a, T> Drop for LockGuard<'a, T> {
