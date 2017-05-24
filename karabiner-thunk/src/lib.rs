@@ -1,11 +1,11 @@
 #![feature(fnbox)]
 
-extern crate karabiner_justonce;
+extern crate karabiner_onetime;
 
 use std::ops::{Deref, DerefMut};
 use std::boxed::FnBox;
 
-use karabiner_justonce::JustOnce;
+use karabiner_onetime::Lock;
 
 #[macro_export]
 macro_rules! lazy {
@@ -21,7 +21,7 @@ macro_rules! eval {
 mod tests;
 
 pub struct Thunk<'a, T> {
-    once: JustOnce<Expr<'a, T>>,
+    once: Lock<Expr<'a, T>>,
 }
 
 unsafe impl<'a, T: Send> Send for Thunk<'a, T> {}
@@ -32,12 +32,12 @@ impl<'a, T: Send + Sync> Thunk<'a, T> {
         where F: 'a + FnBox() -> T + Send + Sync
     {
         let expr = Expr::Deferred(Yield::new(f));
-        let once = JustOnce::new(expr);
+        let once = Lock::new(expr);
         Self { once }
     }
 
     pub fn eval(val: T) -> Thunk<'a, T> {
-        let once = JustOnce::new(Expr::Evaluated(val));
+        let once = Lock::new(Expr::Evaluated(val));
         once.try_lock();
         Thunk { once }
     }
@@ -47,7 +47,7 @@ impl<'a, T: Send + Sync> Thunk<'a, T> {
             Some(mut lock) => {
                 match ::std::mem::replace(&mut *lock, Expr::InProgress) {
                     Expr::Deferred(f) => *lock = Expr::Evaluated(f.invoke()),
-                    _ => unreachable!("JustOnce locked, but an inner expr is not defferred."),
+                    _ => unreachable!("Lock locked, but an inner expr is not defferred."),
                 }
             }
             None => thunk.once.wait(),

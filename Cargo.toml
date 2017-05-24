@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["Kohei Watanabe <xbeef29@gmail.com>"]
 
 [workspace]
-members = ["karabiner-justonce", "karabiner-thunk"]
+members = ["karabiner-onetime", "karabiner-thunk"]
 
 [dependencies]
-karabiner-justonce = { path = "karabiner-justonce" }
-karabiner-thunk    = { path = "karabiner-thunk" }
+karabiner-onetime = { path = "karabiner-onetime" }
+karabiner-thunk   = { path = "karabiner-thunk" }

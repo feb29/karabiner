@@ -1,21 +1,21 @@
 #![feature(test)]
 
-extern crate karabiner_justonce;
+extern crate karabiner_onetime;
 extern crate test;
 extern crate parking_lot;
 
-use karabiner_justonce::JustOnce;
+use karabiner_onetime::Lock;
 use test::Bencher;
 
 #[bench]
 fn just_once_lock(bencher: &mut Bencher) {
-    let once = JustOnce::new(5);
+    let once = Lock::new(5);
     bencher.iter(|| { ::test::black_box(once.try_lock()); });
 }
 
 #[bench]
 fn just_once_deref(bencher: &mut Bencher) {
-    let once = JustOnce::new(5);
+    let once = Lock::new(5);
     bencher.iter(|| ::test::black_box(*once));
 }
 

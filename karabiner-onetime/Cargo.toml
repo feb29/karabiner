@@ -1,5 +1,5 @@
 [package]
-name    = "karabiner-justonce"
+name    = "karabiner-onetime"
 version = "0.1.0"
 authors = ["Kohei Watanabe <xbeef29@gmail.com>"]
 

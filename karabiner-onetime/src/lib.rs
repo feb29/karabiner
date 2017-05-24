@@ -24,29 +24,29 @@ impl Deref for State {
 }
 
 #[derive(Default)]
-pub struct JustOnce<T> {
+pub struct Lock<T> {
     atom: AtomicUsize,
     lock: Mutex<()>,
     cell: UnsafeCell<T>,
 }
-unsafe impl<T: Send> Send for JustOnce<T> {}
-unsafe impl<T: Sync> Sync for JustOnce<T> {}
+unsafe impl<T: Send> Send for Lock<T> {}
+unsafe impl<T: Sync> Sync for Lock<T> {}
 
-impl<T> JustOnce<T>
+impl<T> Lock<T>
     where T: Send + Sync
 {
-    pub fn new(inner: T) -> JustOnce<T> {
-        JustOnce {
+    pub fn new(inner: T) -> Lock<T> {
+        Lock {
             atom: AtomicUsize::new(*INIT),
             lock: Mutex::new(()),
             cell: UnsafeCell::new(inner),
         }
     }
 
-    pub fn try_lock(&self) -> Option<JustOnceGuard<T>> {
+    pub fn try_lock(&self) -> Option<LockGuard<T>> {
         // Ordering::Acquire
         if self.atom.compare_and_swap(*INIT, *WAIT, Ordering::SeqCst) == *INIT {
-            Some(JustOnceGuard::new(self))
+            Some(LockGuard::new(self))
         } else {
             None
         }
@@ -64,13 +64,13 @@ impl<T> JustOnce<T>
     }
 }
 
-impl<T> Deref for JustOnce<T>
+impl<T> Deref for Lock<T>
     where T: Send + Sync
 {
     type Target = T;
 
-    /// Dereference to the value inside the JustOnce.
-    /// This can block if the JustOnce is in its lock state.
+    /// Dereference to the value inside the Lock.
+    /// This can block if the Lock is in its lock state.
     fn deref(&self) -> &T {
         if self.atom.compare_and_swap(*INIT, *FREE, Ordering::SeqCst) == *WAIT {
             self.wait();
@@ -80,39 +80,39 @@ impl<T> Deref for JustOnce<T>
         //unsafe { ::std::mem::transmute(self.cell.get()) }
     }
 }
-impl<T> DerefMut for JustOnce<T>
+impl<T> DerefMut for Lock<T>
     where T: Send + Sync
 {
     fn deref_mut(&mut self) -> &mut T {
-        // `&mut self` means no JustOnceGuard's exist.
+        // `&mut self` means no LockGuard's exist.
         debug_assert_ne!(self.atom.load(Ordering::SeqCst), *WAIT);
         unsafe { &mut *self.cell.get() }
         //unsafe { ::std::mem::transmute(self.cell.get()) }
     }
 }
 
-pub struct JustOnceGuard<'a, T: 'a> {
-    mutex: &'a JustOnce<T>,
+pub struct LockGuard<'a, T: 'a> {
+    mutex: &'a Lock<T>,
     _guard: MutexGuard<'a, ()>,
 }
 
-impl<'a, T> JustOnceGuard<'a, T>
+impl<'a, T> LockGuard<'a, T>
     where T: 'a
 {
-    fn new(mutex: &'a JustOnce<T>) -> JustOnceGuard<'a, T> {
+    fn new(mutex: &'a Lock<T>) -> LockGuard<'a, T> {
         let _guard = mutex.lock.lock();
-        JustOnceGuard { mutex, _guard }
+        LockGuard { mutex, _guard }
     }
 }
 
-impl<'a, T> ::std::fmt::Debug for JustOnceGuard<'a, T>
+impl<'a, T> ::std::fmt::Debug for LockGuard<'a, T>
     where T: Send + Sync
 {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-        f.pad("JustOnceGuard")
+        f.pad("LockGuard")
     }
 }
-impl<'a, T> Deref for JustOnceGuard<'a, T>
+impl<'a, T> Deref for LockGuard<'a, T>
     where T: Send + Sync
 {
     type Target = T;
@@ -121,7 +121,7 @@ impl<'a, T> Deref for JustOnceGuard<'a, T>
         //unsafe { ::std::mem::transmute(self.mutex.cell.get()) }
     }
 }
-impl<'a, T> DerefMut for JustOnceGuard<'a, T>
+impl<'a, T> DerefMut for LockGuard<'a, T>
     where T: Send + Sync
 {
     fn deref_mut(&mut self) -> &mut T {
@@ -129,7 +129,7 @@ impl<'a, T> DerefMut for JustOnceGuard<'a, T>
         // unsafe { ::std::mem::transmute(self.mutex.cell.get()) }
     }
 }
-impl<'a, T> Drop for JustOnceGuard<'a, T> {
+impl<'a, T> Drop for LockGuard<'a, T> {
     fn drop(&mut self) {
         self.mutex.atom.store(*FREE, Ordering::SeqCst);
     }

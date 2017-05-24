@@ -1,4 +1,4 @@
-pub extern crate karabiner_justonce as justonce;
+pub extern crate karabiner_onetime as onetime;
 pub extern crate karabiner_thunk as thunk;
 
 // macros cannot reexoprt.

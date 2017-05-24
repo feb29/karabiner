@@ -4,4 +4,4 @@ version = "0.1.0"
 authors = ["Kohei Watanabe <xbeef29@gmail.com>"]
 
 [dependencies]
-karabiner-justonce = { path = "../karabiner-justonce" }
+karabiner-onetime = { path = "../karabiner-onetime" }

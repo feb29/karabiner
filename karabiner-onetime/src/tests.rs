@@ -6,7 +6,7 @@ use super::*;
 
 #[test]
 fn lock_just_once() {
-    let once = JustOnce::new("JustOnce");
+    let once = Lock::new("Lock");
 
     assert_eq!(once.atom.load(Ordering::SeqCst), *INIT);
     assert!(once.try_lock().is_some());
@@ -20,7 +20,7 @@ fn lock_just_once() {
 
 #[test]
 fn just_once_atom() {
-    let once1 = Arc::new(JustOnce::new("JustOnce"));
+    let once1 = Arc::new(Lock::new("Lock"));
 
     let once2 = once1.clone();
     thread::spawn(move || {
@@ -42,7 +42,7 @@ fn just_once_atom() {
 
 #[test]
 fn just_once_deref() {
-    let once = JustOnce::new("JustOnce");
+    let once = Lock::new("Lock");
     let deref = *once;
     assert_eq!(once.atom.load(Ordering::SeqCst), *FREE, "{:?}", deref);
 }
@@ -51,6 +51,6 @@ fn just_once_deref() {
 fn assert_send_sync() {
     fn __assert_send<T: Send>() {}
     fn __assert_sync<T: Sync>() {}
-    __assert_send::<JustOnce<Vec<u8>>>();
-    __assert_sync::<JustOnce<Vec<u8>>>();
+    __assert_send::<Lock<Vec<u8>>>();
+    __assert_sync::<Lock<Vec<u8>>>();
 }
