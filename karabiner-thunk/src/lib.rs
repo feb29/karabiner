@@ -23,7 +23,6 @@ mod tests;
 pub struct Thunk<'a, T> {
     once: Lock<Expr<'a, T>>,
 }
-
 unsafe impl<'a, T: Send> Send for Thunk<'a, T> {}
 unsafe impl<'a, T: Sync> Sync for Thunk<'a, T> {}
 

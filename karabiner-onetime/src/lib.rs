@@ -64,6 +64,11 @@ impl<T> Lock<T>
             let _ = self.lock.lock();
         }
     }
+
+    pub fn into_inner(self) -> T {
+        // this is safe, because of `self`.
+        unsafe { self.cell.into_inner() }
+    }
 }
 
 impl<T> Deref for Lock<T>
