@@ -24,11 +24,11 @@ fn just_once_atom() {
 
     let once2 = once1.clone();
     thread::spawn(move || {
-                      let lock = once2.try_lock();
-                      let stored = once2.atom.load(Ordering::SeqCst);
-                      assert!(stored == *WAIT || stored == *FREE);
-                      drop(lock)
-                  });
+        let lock = once2.try_lock();
+        let stored = once2.atom.load(Ordering::SeqCst);
+        assert!(stored == *WAIT || stored == *FREE);
+        drop(lock)
+    });
 
     if let Some(data) = once1.try_lock() {
         println!("lock, {:?}", *data)

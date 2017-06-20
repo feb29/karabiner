@@ -35,7 +35,8 @@ unsafe impl<T: Send> Send for Lock<T> {}
 unsafe impl<T: Sync> Sync for Lock<T> {}
 
 impl<T> Lock<T>
-    where T: Send + Sync
+where
+    T: Send + Sync,
 {
     pub fn new(inner: T) -> Lock<T> {
         Lock {
@@ -72,7 +73,8 @@ impl<T> Lock<T>
 }
 
 impl<T> Deref for Lock<T>
-    where T: Send + Sync
+where
+    T: Send + Sync,
 {
     type Target = T;
 
@@ -87,7 +89,8 @@ impl<T> Deref for Lock<T>
     }
 }
 impl<T> DerefMut for Lock<T>
-    where T: Send + Sync
+where
+    T: Send + Sync,
 {
     fn deref_mut(&mut self) -> &mut T {
         // `&mut self` means no LockGuard's exist.
@@ -102,7 +105,8 @@ pub struct LockGuard<'a, T: 'a> {
 }
 
 impl<'a, T> LockGuard<'a, T>
-    where T: 'a
+where
+    T: 'a,
 {
     fn new(mutex: &'a Lock<T>) -> LockGuard<'a, T> {
         let _guard = mutex.lock.lock();
@@ -111,14 +115,16 @@ impl<'a, T> LockGuard<'a, T>
 }
 
 impl<'a, T> ::std::fmt::Debug for LockGuard<'a, T>
-    where T: Send + Sync
+where
+    T: Send + Sync,
 {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         f.pad("LockGuard")
     }
 }
 impl<'a, T> Deref for LockGuard<'a, T>
-    where T: Send + Sync
+where
+    T: Send + Sync,
 {
     type Target = T;
     fn deref(&self) -> &T {
@@ -126,7 +132,8 @@ impl<'a, T> Deref for LockGuard<'a, T>
     }
 }
 impl<'a, T> DerefMut for LockGuard<'a, T>
-    where T: Send + Sync
+where
+    T: Send + Sync,
 {
     fn deref_mut(&mut self) -> &mut T {
         unsafe { &mut *self.mutex.cell.get() }

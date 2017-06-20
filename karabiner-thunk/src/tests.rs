@@ -16,9 +16,9 @@ fn evaluate_just_once() {
     let c2 = c1.clone();
 
     let value = lazy!({
-                          let mut data = c1.lock().unwrap();
-                          *data += 1;
-                      });
+        let mut data = c1.lock().unwrap();
+        *data += 1;
+    });
 
     assert_eq!(*c2.lock().unwrap(), 0);
     *value;
@@ -30,9 +30,9 @@ fn evaluate_just_once() {
 #[test]
 fn print_once() {
     let expr = lazy!({
-                         println!("evaluated!");
-                         7
-                     });
+        println!("evaluated!");
+        7
+    });
 
     assert_eq!(*expr, 7); // "evaluated!" printed here.
     assert_eq!(*expr, 7); // Nothing printed.
@@ -45,19 +45,21 @@ fn thunks_in_vec() {
     let arc1 = arc0.clone();
     let arc2 = arc0.clone();
     let arc3 = arc0.clone();
-    let mut vec = vec![lazy!({
-                                 arc1.lock().unwrap().push(0);
-                                 0
-                             }),
-                       lazy!({
-                                 arc2.lock().unwrap().push(1);
-                                 1
-                             }),
-                       lazy!({
-                                 arc3.lock().unwrap().push(2);
-                                 2
-                             }),
-                       eval!(3)];
+    let mut vec = vec![
+        lazy!({
+            arc1.lock().unwrap().push(0);
+            0
+        }),
+        lazy!({
+            arc2.lock().unwrap().push(1);
+            1
+        }),
+        lazy!({
+            arc3.lock().unwrap().push(2);
+            2
+        }),
+        eval!(3),
+    ];
 
     assert_eq!(vec.len(), 4);
     let removed = vec.remove(2);
@@ -107,9 +109,9 @@ fn drop_just_once() {
     let th = thread::spawn(move || {
         let drop = DropTest(c2);
         let lazy = lazy!({
-                             let drop_ref = &drop;
-                             assert!(drop_ref.value() == 0, "drop_ref:{:?}", drop_ref.value());
-                         });
+            let drop_ref = &drop;
+            assert!(drop_ref.value() == 0, "drop_ref:{:?}", drop_ref.value());
+        });
         Thunk::force(&lazy);
     });
 
@@ -122,20 +124,20 @@ fn drop_just_once() {
 #[test]
 fn thunk_in_thunk() {
     let t1 = lazy!({
-                       println!("t1");
-                       1 + 2
-                   });
+        println!("t1");
+        1 + 2
+    });
     let t2 = lazy!({
-                       println!("t2");
-                       3 + 4
-                   });
+        println!("t2");
+        3 + 4
+    });
 
     let t3 = lazy!({
-                       println!("evaluate thunk in thunk");
-                       let r1 = *t1;
-                       let r2 = *t2;
-                       (r1 + r2) * r1
-                   });
+        println!("evaluate thunk in thunk");
+        let r1 = *t1;
+        let r2 = *t2;
+        (r1 + r2) * r1
+    });
 
     assert!(*t3 == 30);
 }

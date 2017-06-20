@@ -28,7 +28,8 @@ unsafe impl<'a, T: Sync> Sync for Thunk<'a, T> {}
 
 impl<'a, T: Send + Sync> Thunk<'a, T> {
     pub fn lazy<F>(f: F) -> Self
-        where F: 'a + FnBox() -> T + Send + Sync
+    where
+        F: 'a + FnBox() -> T + Send + Sync,
     {
         let expr = Expr::Deferred(Yield::new(f));
         let once = Lock::new(expr);
@@ -88,7 +89,8 @@ struct Yield<'a, T> {
 }
 impl<'a, T> Yield<'a, T> {
     fn new<F>(f: F) -> Yield<'a, T>
-        where F: 'a + FnBox() -> T
+    where
+        F: 'a + FnBox() -> T,
     {
         let boxed = Box::new(f);
         Yield { boxed }
